@@ -15,7 +15,7 @@ let _display = global.display;
 
 let MiniviewIndicator = GObject.registerClass(
 class MiniviewIndicator extends PanelMenu.Button {
-    _init(miniview) {
+    _init(miniview, toggleState) {
         this._miniview = miniview;
 
         // create menu ui
@@ -29,7 +29,7 @@ class MiniviewIndicator extends PanelMenu.Button {
 
         // on/off toggle
         this._tsToggle = new PopupMenu.PopupSwitchMenuItem(_('Enable Miniview'), false, { style_class: 'popup-subtitle-menu-item' });
-        this._tsToggle.connect('toggled', this._onToggled.bind(this));
+        this.setToggleState(toggleState);
         this.menu.addMenuItem(this._tsToggle);
 
         // cycling through windows
@@ -77,6 +77,15 @@ class MiniviewIndicator extends PanelMenu.Button {
         this._miniview._clone.inMove = false;
         this._miniview._clone.inResize = false;
         this._miniview._clone.inResizeCtrl = false;
+    }
+
+    setToggleState(state) {
+        if (this._toggleHandlerId) {
+            this._tsToggle.disconnect(this._toggleHandlerId);
+        }
+        
+        this._tsToggle.setToggleState(state);
+        this._toggleHandlerId = this._tsToggle.connect('toggled', this._onToggled.bind(this));
     }
 });
 
@@ -624,7 +633,7 @@ export default class Miniview extends Extension {
     }
 
     _reflectState() {
-        this._indicator._tsToggle.setToggleState(this._showme);
+        this._indicator.setToggleState(this._showme);
         this._indicator.visible = this._showind;
         this._realizeMiniview();
     }
